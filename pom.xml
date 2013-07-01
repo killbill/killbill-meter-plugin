@@ -15,6 +15,7 @@
         <version>0.3.0</version>
     </parent>
     <artifactId>killbill-osgi-bundles-meter</artifactId>
+    <version>0.3.2-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Killbill billing platform: OSGI Metering bundle</name>
     <description>Kill Bill meter plugin</description>
