@@ -18,6 +18,17 @@
     <artifactId>killbill-osgi-bundles-meter</artifactId>
     <packaging>bundle</packaging>
     <name>Killbill billing platform: OSGI Metering bundle</name>
+    <description>Kill Bill meter plugin</description>
+    <url>http://github.com/killbill/killbill-meter-plugin</url>
+    <scm>
+        <connection>scm:git:git://github.com/killbill/killbill-meter-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:killbill/killbill-meter-plugin.git</developerConnection>
+        <url>http://github.com/killbill/killbill-meter-plugin/tree/master</url>
+    </scm>
+    <issueManagement>
+        <system>Github</system>
+        <url>https://github.com/killbill/killbill-meter-plugin/issues</url>
+    </issueManagement>
     <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
