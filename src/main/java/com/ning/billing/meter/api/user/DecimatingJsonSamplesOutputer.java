@@ -38,7 +38,7 @@ import com.ning.billing.meter.timeline.consumer.TimeRangeSampleProcessor;
 import com.ning.billing.meter.timeline.consumer.filter.DecimatingSampleFilter;
 import com.ning.billing.meter.timeline.metrics.SamplesForMetricAndSource;
 import com.ning.billing.meter.timeline.persistent.TimelineDao;
-import com.ning.billing.util.callcontext.InternalTenantContext;
+import com.ning.billing.util.callcontext.TenantContext;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.base.Strings;
@@ -51,7 +51,7 @@ public class DecimatingJsonSamplesOutputer extends JsonSamplesOutputer {
     private Map<Integer, Map<Integer, DecimatingSampleFilter>> filters;
 
     public DecimatingJsonSamplesOutputer(final DecimationMode decimationMode, @Nullable final Integer outputCount,
-                                         final TimelineEventHandler timelineEventHandler, final TimelineDao timelineDao, final InternalTenantContext context) {
+                                         final TimelineEventHandler timelineEventHandler, final TimelineDao timelineDao, final TenantContext context) {
         super(timelineEventHandler, timelineDao, context);
         this.outputCount = outputCount;
         this.decimationMode = decimationMode;

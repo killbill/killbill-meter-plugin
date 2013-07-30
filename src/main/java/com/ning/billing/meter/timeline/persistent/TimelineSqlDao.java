@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.skife.jdbi.v2.DefaultMapper;
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.BindBean;
 import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
@@ -30,6 +31,8 @@ import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
+import com.ning.billing.meter.timeline.MeterInternalCallContext;
+import com.ning.billing.meter.timeline.MeterInternalTenantContext;
 import com.ning.billing.meter.timeline.categories.CategoryIdAndMetricMapper;
 import com.ning.billing.meter.timeline.categories.CategoryRecordIdAndMetric;
 import com.ning.billing.meter.timeline.chunks.TimelineChunk;
@@ -38,9 +41,6 @@ import com.ning.billing.meter.timeline.shutdown.StartTimes;
 import com.ning.billing.meter.timeline.shutdown.StartTimesBinder;
 import com.ning.billing.meter.timeline.shutdown.StartTimesMapper;
 import com.ning.billing.meter.timeline.sources.SourceIdAndMetricIdMapper;
-import com.ning.billing.util.callcontext.InternalCallContext;
-import com.ning.billing.util.callcontext.InternalTenantContext;
-import com.ning.billing.util.callcontext.InternalTenantContextBinder;
 
 @UseStringTemplate3StatementLocator()
 @RegisterMapper({CategoryIdAndMetricMapper.class, StartTimesMapper.class, SourceIdAndMetricIdMapper.class, DefaultMapper.class})
@@ -48,81 +48,81 @@ public interface TimelineSqlDao extends Transactional<TimelineSqlDao> {
 
     @SqlQuery
     Integer getSourceRecordId(@Bind("source") final String source,
-                              @InternalTenantContextBinder final InternalTenantContext context);
+                              @BindBean final MeterInternalTenantContext context);
 
     @SqlQuery
     String getSourceName(@Bind("recordId") final Integer sourceRecordId,
-                         @InternalTenantContextBinder final InternalTenantContext context);
+                         @BindBean final MeterInternalTenantContext context);
 
     @SqlQuery
-    List<Map<String, Object>> getSources(@InternalTenantContextBinder final InternalTenantContext context);
+    List<Map<String, Object>> getSources(@BindBean final MeterInternalTenantContext context);
 
     @SqlUpdate
     void addSource(@Bind("source") final String source,
-                   @InternalTenantContextBinder final InternalCallContext context);
+                   @BindBean final MeterInternalCallContext context);
 
     @SqlQuery
     Integer getCategoryRecordId(@Bind("category") final String category,
-                                @InternalTenantContextBinder final InternalTenantContext context);
+                                @BindBean final MeterInternalTenantContext context);
 
     @SqlQuery
     String getCategory(@Bind("recordId") final Integer categoryRecordId,
-                       @InternalTenantContextBinder final InternalTenantContext context);
+                       @BindBean final MeterInternalTenantContext context);
 
     @SqlQuery
-    List<Map<String, Object>> getCategories(@InternalTenantContextBinder final InternalTenantContext context);
+    List<Map<String, Object>> getCategories(@BindBean final MeterInternalTenantContext context);
 
     @SqlUpdate
     void addCategory(@Bind("category") final String category,
-                     @InternalTenantContextBinder final InternalCallContext context);
+                     @BindBean final MeterInternalCallContext context);
 
     @SqlQuery
     Integer getMetricRecordId(@Bind("categoryRecordId") final int categoryRecordId,
                               @Bind("metric") final String metric,
-                              @InternalTenantContextBinder final InternalTenantContext context);
+                              @BindBean final MeterInternalTenantContext context);
 
     @SqlQuery
     Iterable<Integer> getMetricRecordIdsBySourceRecordId(@Bind("sourceRecordId") final Integer sourceRecordId,
-                                                         @InternalTenantContextBinder final InternalTenantContext context);
+                                                         @BindBean final MeterInternalTenantContext context);
 
     @SqlQuery
     CategoryRecordIdAndMetric getCategoryRecordIdAndMetric(@Bind("recordId") final Integer metricRecordId,
-                                                           @InternalTenantContextBinder final InternalTenantContext context);
+                                                           @BindBean final MeterInternalTenantContext context);
 
     @SqlQuery
     String getMetric(@Bind("recordId") final Integer metricRecordId,
-                     @InternalTenantContextBinder final InternalTenantContext context);
+                     @BindBean final MeterInternalTenantContext context);
 
     @SqlQuery
-    List<Map<String, Object>> getMetrics(@InternalTenantContextBinder final InternalTenantContext context);
+    List<Map<String, Object>> getMetrics(@BindBean final MeterInternalTenantContext context);
 
     @SqlUpdate
     void addMetric(@Bind("categoryRecordId") final int categoryRecordId,
                    @Bind("metric") final String metric,
-                   @InternalTenantContextBinder final InternalCallContext context);
+                   @BindBean final MeterInternalCallContext context);
 
     @SqlQuery
-    int getLastInsertedRecordId(@InternalTenantContextBinder final InternalTenantContext context);
+    int getLastInsertedRecordId(@BindBean final MeterInternalTenantContext context);
 
     @SqlUpdate
     void insertTimelineChunk(@TimelineChunkBinder final TimelineChunk timelineChunk,
-                             @InternalTenantContextBinder final InternalCallContext context);
+                             @BindBean final MeterInternalCallContext context);
 
     @SqlBatch
     @BatchChunkSize(1000)
     void bulkInsertTimelineChunks(@TimelineChunkBinder Iterator<TimelineChunk> chunkIterator,
-                                  @InternalTenantContextBinder final InternalCallContext context);
+                                  @BindBean final MeterInternalCallContext context);
 
     @SqlUpdate
     Integer insertLastStartTimes(@StartTimesBinder final StartTimes startTimes,
-                                 @InternalTenantContextBinder final InternalCallContext context);
+                                 @BindBean final MeterInternalCallContext context);
 
     @SqlQuery
-    StartTimes getLastStartTimes(@InternalTenantContextBinder final InternalTenantContext context);
+    StartTimes getLastStartTimes(@BindBean final MeterInternalTenantContext context);
 
     @SqlUpdate
-    void deleteLastStartTimes(@InternalTenantContextBinder final InternalCallContext context);
+    void deleteLastStartTimes(@BindBean final MeterInternalCallContext context);
 
     @SqlUpdate
-    void test(@InternalTenantContextBinder final InternalTenantContext context);
+    void test(@BindBean final MeterInternalTenantContext context);
 }

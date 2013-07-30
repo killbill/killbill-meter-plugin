@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.joda.time.DateTime;
@@ -30,18 +29,14 @@ import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ning.billing.meter.MeterCallContext;
 import com.ning.billing.meter.timeline.categories.CategoryRecordIdAndMetric;
 import com.ning.billing.meter.timeline.chunks.TimelineChunk;
 import com.ning.billing.meter.timeline.persistent.CachingTimelineDao;
 import com.ning.billing.meter.timeline.persistent.DefaultTimelineDao;
 import com.ning.billing.meter.timeline.times.DefaultTimelineCoder;
 import com.ning.billing.meter.timeline.times.TimelineCoder;
-import com.ning.billing.util.callcontext.CallOrigin;
-import com.ning.billing.util.callcontext.InternalCallContext;
-import com.ning.billing.util.callcontext.InternalCallContextFactory;
-import com.ning.billing.util.callcontext.UserType;
-import com.ning.billing.util.clock.Clock;
-import com.ning.billing.util.clock.ClockMock;
+import com.ning.billing.util.callcontext.CallContext;
 
 import com.google.common.collect.BiMap;
 
@@ -80,12 +75,7 @@ public class TimelineLoadGenerator {
     private final TimelineCoder timelineCoder;
 
     private final AtomicInteger timelineChunkIdCounter = new AtomicInteger(0);
-
-    private final Clock clock = new ClockMock();
-    private final InternalCallContext internalCallContext = new InternalCallContext(InternalCallContextFactory.INTERNAL_TENANT_RECORD_ID, 1687L, UUID.randomUUID(),
-                                                                                    UUID.randomUUID().toString(), CallOrigin.TEST,
-                                                                                    UserType.TEST, "Testing", "This is a test",
-                                                                                    clock.getUTCNow(), clock.getUTCNow());
+    private final CallContext internalCallContext = new MeterCallContext(null);
 
     public TimelineLoadGenerator() {
         this.timelineCoder = new DefaultTimelineCoder();

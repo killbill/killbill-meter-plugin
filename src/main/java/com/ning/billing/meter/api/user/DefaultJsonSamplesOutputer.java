@@ -25,14 +25,14 @@ import com.ning.billing.meter.timeline.chunks.TimelineChunk;
 import com.ning.billing.meter.timeline.consumer.CSVConsumer;
 import com.ning.billing.meter.timeline.metrics.SamplesForMetricAndSource;
 import com.ning.billing.meter.timeline.persistent.TimelineDao;
-import com.ning.billing.util.callcontext.InternalTenantContext;
+import com.ning.billing.util.callcontext.TenantContext;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.base.Strings;
 
 public class DefaultJsonSamplesOutputer extends JsonSamplesOutputer {
 
-    public DefaultJsonSamplesOutputer(final TimelineEventHandler timelineEventHandler, final TimelineDao timelineDao, final InternalTenantContext context) {
+    public DefaultJsonSamplesOutputer(final TimelineEventHandler timelineEventHandler, final TimelineDao timelineDao, final TenantContext context) {
         super(timelineEventHandler, timelineDao, context);
     }
 

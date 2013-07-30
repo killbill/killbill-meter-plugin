@@ -25,12 +25,10 @@ import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
+import com.ning.billing.clock.ClockMock;
+import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.CallOrigin;
-import com.ning.billing.util.callcontext.InternalCallContext;
-import com.ning.billing.util.callcontext.InternalCallContextFactory;
 import com.ning.billing.util.callcontext.UserType;
-import com.ning.billing.util.clock.Clock;
-import com.ning.billing.util.clock.ClockMock;
 
 public class MeterTestSuite {
 
@@ -39,12 +37,11 @@ public class MeterTestSuite {
 
     private boolean hasFailed = false;
 
-    protected Clock clock = new ClockMock();
+    protected ClockMock clock = new ClockMock();
 
-    protected final InternalCallContext internalCallContext = new InternalCallContext(InternalCallContextFactory.INTERNAL_TENANT_RECORD_ID, 1687L, UUID.randomUUID(),
-                                                                                      UUID.randomUUID().toString(), CallOrigin.TEST,
-                                                                                      UserType.TEST, "Testing", "This is a test",
-                                                                                      clock.getUTCNow(), clock.getUTCNow());
+    protected final CallContext callContext = new MeterCallContext(null, UUID.randomUUID().toString(), CallOrigin.TEST,
+                                                                   UserType.TEST, "Testing", "This is a test", UUID.randomUUID(),
+                                                                   clock.getUTCNow());
 
     @BeforeMethod(alwaysRun = true)
     public void startTestSuite(final Method method) throws Exception {

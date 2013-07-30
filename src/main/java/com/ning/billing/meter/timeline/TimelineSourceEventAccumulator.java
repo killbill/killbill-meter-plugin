@@ -40,7 +40,6 @@ import com.ning.billing.meter.timeline.samples.RepeatSample;
 import com.ning.billing.meter.timeline.samples.ScalarSample;
 import com.ning.billing.meter.timeline.sources.SourceSamplesForTimestamp;
 import com.ning.billing.meter.timeline.times.TimelineCoder;
-import com.ning.billing.util.callcontext.InternalCallContextFactory;
 
 /**
  * This class represents a collection of timeline chunks, one for each
@@ -122,8 +121,8 @@ public class TimelineSourceEventAccumulator {
      * chunk writes.
      */
     public TimelineSourceEventAccumulator(final TimelineDao timelineDAO, final TimelineCoder timelineCoder, final SampleCoder sampleCoder,
-                                          final Integer sourceId, final int eventTypeId, final DateTime firstSampleTime, final InternalCallContextFactory internalCallContextFactory) {
-        this(timelineDAO, timelineCoder, sampleCoder, new BackgroundDBChunkWriter(timelineDAO, null, true, internalCallContextFactory), sourceId, eventTypeId, firstSampleTime, Integer.MAX_VALUE);
+                                          final Integer sourceId, final int eventTypeId, final DateTime firstSampleTime) {
+        this(timelineDAO, timelineCoder, sampleCoder, new BackgroundDBChunkWriter(timelineDAO, null, true), sourceId, eventTypeId, firstSampleTime, Integer.MAX_VALUE);
     }
 
     @SuppressWarnings("unchecked")

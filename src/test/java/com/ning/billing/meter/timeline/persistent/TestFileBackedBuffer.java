@@ -26,7 +26,6 @@ import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.mockito.Mockito;
 import org.skife.config.ConfigurationObjectFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +33,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.ning.billing.meter.MeterConfig;
 import com.ning.billing.meter.MeterTestSuiteNoDB;
 import com.ning.billing.meter.timeline.BackgroundDBChunkWriter;
 import com.ning.billing.meter.timeline.MockTimelineDao;
@@ -43,11 +43,6 @@ import com.ning.billing.meter.timeline.codec.SampleCoder;
 import com.ning.billing.meter.timeline.sources.SourceSamplesForTimestamp;
 import com.ning.billing.meter.timeline.times.DefaultTimelineCoder;
 import com.ning.billing.meter.timeline.times.TimelineCoder;
-import com.ning.billing.util.cache.CacheControllerDispatcher;
-import com.ning.billing.util.callcontext.InternalCallContextFactory;
-import com.ning.billing.util.clock.ClockMock;
-import com.ning.billing.util.config.MeterConfig;
-import com.ning.billing.util.dao.NonEntityDao;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -65,8 +60,6 @@ public class TestFileBackedBuffer extends MeterTestSuiteNoDB {
     private static final TimelineCoder timelineCoder = new DefaultTimelineCoder();
     private static final SampleCoder sampleCoder = new DefaultSampleCoder();
 
-    private final NonEntityDao nonEntityDao = Mockito.mock(NonEntityDao.class);
-    private final InternalCallContextFactory internalCallContextFactory = new InternalCallContextFactory(new ClockMock(), nonEntityDao, new CacheControllerDispatcher());
     private final TimelineDao dao = new MockTimelineDao();
     private TimelineEventHandler timelineEventHandler;
 
@@ -76,10 +69,10 @@ public class TestFileBackedBuffer extends MeterTestSuiteNoDB {
         System.setProperty("killbill.usage.timelines.spoolDir", basePath.getAbsolutePath());
         System.setProperty("killbill.usage.timelines.length", "60s");
         final MeterConfig config = new ConfigurationObjectFactory(System.getProperties()).build(MeterConfig.class);
-        timelineEventHandler = new TimelineEventHandler(config, dao, timelineCoder, sampleCoder, new BackgroundDBChunkWriter(dao, config, internalCallContextFactory),
+        timelineEventHandler = new TimelineEventHandler(config, dao, timelineCoder, sampleCoder, new BackgroundDBChunkWriter(dao, config),
                                                         new FileBackedBuffer(config.getSpoolDir(), "TimelineEventHandler", 1024 * 1024, 10));
 
-        dao.getOrAddSource(HOST_UUID.toString(), internalCallContext);
+        dao.getOrAddSource(HOST_UUID.toString(), callContext);
     }
 
     @Test(groups = "fast") // Not really fast, but doesn't require a database
@@ -100,7 +93,7 @@ public class TestFileBackedBuffer extends MeterTestSuiteNoDB {
         for (int i = 0; i < NB_EVENTS; i++) {
             final String category = UUID.randomUUID().toString();
             final DateTime eventTimestamp = startTime.plusSeconds(i);
-            timelineEventHandler.record(HOST_UUID.toString(), category, eventTimestamp, EVENT, internalCallContext);
+            timelineEventHandler.record(HOST_UUID.toString(), category, eventTimestamp, EVENT, callContext);
             timestampsRecorded.add(eventTimestamp);
             categoriesRecorded.add(category);
         }

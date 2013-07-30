@@ -49,7 +49,7 @@ public class TestDefaultTimelineDao extends MeterTestSuiteWithEmbeddedDB {
 
         // Create the host
         final String hostName = UUID.randomUUID().toString();
-        final Integer hostId = dao.getOrAddSource(hostName, internalCallContext);
+        final Integer hostId = dao.getOrAddSource(hostName, callContext);
         Assert.assertNotNull(hostId);
 
         // Create a timeline times (needed for the join in the dashboard query)
@@ -57,29 +57,29 @@ public class TestDefaultTimelineDao extends MeterTestSuiteWithEmbeddedDB {
 
         // Create the samples
         final String sampleOne = UUID.randomUUID().toString();
-        final Integer sampleOneId = dao.getOrAddMetric(eventCategoryId, sampleOne, internalCallContext);
+        final Integer sampleOneId = dao.getOrAddMetric(eventCategoryId, sampleOne, callContext);
         Assert.assertNotNull(sampleOneId);
         final String sampleTwo = UUID.randomUUID().toString();
-        final Integer sampleTwoId = dao.getOrAddMetric(eventCategoryId, sampleTwo, internalCallContext);
+        final Integer sampleTwoId = dao.getOrAddMetric(eventCategoryId, sampleTwo, callContext);
         Assert.assertNotNull(sampleTwoId);
 
         // Basic retrieval tests
-        final BiMap<Integer, CategoryRecordIdAndMetric> sampleKinds = dao.getMetrics(internalCallContext);
+        final BiMap<Integer, CategoryRecordIdAndMetric> sampleKinds = dao.getMetrics(callContext);
         Assert.assertEquals(sampleKinds.size(), 2);
         Assert.assertEquals(sampleKinds.get(sampleOneId).getEventCategoryId(), (int) eventCategoryId);
         Assert.assertEquals(sampleKinds.get(sampleOneId).getMetric(), sampleOne);
         Assert.assertEquals(sampleKinds.get(sampleTwoId).getEventCategoryId(), (int) eventCategoryId);
         Assert.assertEquals(sampleKinds.get(sampleTwoId).getMetric(), sampleTwo);
-        Assert.assertEquals(dao.getCategoryIdAndMetric(sampleOneId, internalCallContext).getEventCategoryId(), (int) eventCategoryId);
-        Assert.assertEquals(dao.getCategoryIdAndMetric(sampleOneId, internalCallContext).getMetric(), sampleOne);
-        Assert.assertEquals(dao.getCategoryIdAndMetric(sampleTwoId, internalCallContext).getEventCategoryId(), (int) eventCategoryId);
-        Assert.assertEquals(dao.getCategoryIdAndMetric(sampleTwoId, internalCallContext).getMetric(), sampleTwo);
+        Assert.assertEquals(dao.getCategoryIdAndMetric(sampleOneId, callContext).getEventCategoryId(), (int) eventCategoryId);
+        Assert.assertEquals(dao.getCategoryIdAndMetric(sampleOneId, callContext).getMetric(), sampleOne);
+        Assert.assertEquals(dao.getCategoryIdAndMetric(sampleTwoId, callContext).getEventCategoryId(), (int) eventCategoryId);
+        Assert.assertEquals(dao.getCategoryIdAndMetric(sampleTwoId, callContext).getMetric(), sampleTwo);
 
-        dao.insertTimelineChunk(new TimelineChunk(0, hostId, sampleOneId, startTime, endTime, new byte[0], new byte[0], 0), internalCallContext);
-        dao.insertTimelineChunk(new TimelineChunk(0, hostId, sampleTwoId, startTime, endTime, new byte[0], new byte[0], 0), internalCallContext);
+        dao.insertTimelineChunk(new TimelineChunk(0, hostId, sampleOneId, startTime, endTime, new byte[0], new byte[0], 0), callContext);
+        dao.insertTimelineChunk(new TimelineChunk(0, hostId, sampleTwoId, startTime, endTime, new byte[0], new byte[0], 0), callContext);
 
         // Random sampleKind for random host
-        dao.insertTimelineChunk(new TimelineChunk(0, Integer.MAX_VALUE - 100, Integer.MAX_VALUE, startTime, endTime, new byte[0], new byte[0], 0), internalCallContext);
+        dao.insertTimelineChunk(new TimelineChunk(0, Integer.MAX_VALUE - 100, Integer.MAX_VALUE, startTime, endTime, new byte[0], new byte[0], 0), callContext);
 
         // Test dashboard query
         final AtomicInteger chunksSeen = new AtomicInteger(0);
@@ -90,12 +90,12 @@ public class TestDefaultTimelineDao extends MeterTestSuiteWithEmbeddedDB {
                 Assert.assertEquals((Integer) chunk.getSourceId(), hostId);
                 Assert.assertTrue(chunk.getMetricId() == sampleOneId || chunk.getMetricId() == sampleTwoId);
             }
-        }, internalCallContext);
+        }, callContext);
         Assert.assertEquals(chunksSeen.get(), 2);
 
         // Dummy queries
-        dao.getSamplesBySourceIdsAndMetricIds(ImmutableList.<Integer>of(Integer.MAX_VALUE), null, startTime, startTime.plusDays(1), FAIL_CONSUMER, internalCallContext);
-        dao.getSamplesBySourceIdsAndMetricIds(ImmutableList.<Integer>of(hostId), ImmutableList.<Integer>of(Integer.MAX_VALUE), startTime, startTime.plusDays(1), FAIL_CONSUMER, internalCallContext);
-        dao.getSamplesBySourceIdsAndMetricIds(ImmutableList.<Integer>of(hostId), ImmutableList.<Integer>of(sampleOneId, sampleTwoId), startTime.plusDays(1), startTime.plusDays(2), FAIL_CONSUMER, internalCallContext);
+        dao.getSamplesBySourceIdsAndMetricIds(ImmutableList.<Integer>of(Integer.MAX_VALUE), null, startTime, startTime.plusDays(1), FAIL_CONSUMER, callContext);
+        dao.getSamplesBySourceIdsAndMetricIds(ImmutableList.<Integer>of(hostId), ImmutableList.<Integer>of(Integer.MAX_VALUE), startTime, startTime.plusDays(1), FAIL_CONSUMER, callContext);
+        dao.getSamplesBySourceIdsAndMetricIds(ImmutableList.<Integer>of(hostId), ImmutableList.<Integer>of(sampleOneId, sampleTwoId), startTime.plusDays(1), startTime.plusDays(2), FAIL_CONSUMER, callContext);
     }
 }

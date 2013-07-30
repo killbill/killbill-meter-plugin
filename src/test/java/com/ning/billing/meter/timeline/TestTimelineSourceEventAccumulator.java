@@ -22,7 +22,6 @@ import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -34,10 +33,6 @@ import com.ning.billing.meter.timeline.samples.ScalarSample;
 import com.ning.billing.meter.timeline.sources.SourceSamplesForTimestamp;
 import com.ning.billing.meter.timeline.times.DefaultTimelineCoder;
 import com.ning.billing.meter.timeline.times.TimelineCoder;
-import com.ning.billing.util.cache.CacheControllerDispatcher;
-import com.ning.billing.util.callcontext.InternalCallContextFactory;
-import com.ning.billing.util.clock.ClockMock;
-import com.ning.billing.util.dao.NonEntityDao;
 
 public class TestTimelineSourceEventAccumulator extends MeterTestSuiteNoDB {
 
@@ -48,14 +43,11 @@ public class TestTimelineSourceEventAccumulator extends MeterTestSuiteNoDB {
     private static final TimelineCoder timelineCoder = new DefaultTimelineCoder();
     private static final SampleCoder sampleCoder = new DefaultSampleCoder();
 
-    private final NonEntityDao nonEntityDao = Mockito.mock(NonEntityDao.class);
-    private final InternalCallContextFactory internalCallContextFactory = new InternalCallContextFactory(new ClockMock(), nonEntityDao, new CacheControllerDispatcher());
-
     @Test(groups = "fast")
     public void testSimpleAggregate() throws IOException {
         final DateTime startTime = new DateTime(DateTimeZone.UTC);
         final TimelineSourceEventAccumulator accumulator = new TimelineSourceEventAccumulator(dao, timelineCoder, sampleCoder, HOST_ID,
-                                                                                              EVENT_CATEGORY_ID, startTime, internalCallContextFactory);
+                                                                                              EVENT_CATEGORY_ID, startTime);
 
         // Send a first type of data
         final int sampleCount = 5;

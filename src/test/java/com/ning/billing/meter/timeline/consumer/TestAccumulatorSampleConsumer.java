@@ -24,11 +24,8 @@ import org.testng.annotations.Test;
 import com.ning.billing.meter.MeterTestSuiteNoDB;
 import com.ning.billing.meter.api.TimeAggregationMode;
 import com.ning.billing.meter.timeline.samples.SampleOpcode;
-import com.ning.billing.util.clock.ClockMock;
 
 public class TestAccumulatorSampleConsumer extends MeterTestSuiteNoDB {
-
-    private final ClockMock clock = new ClockMock();
 
     @Test(groups = "fast")
     public void testDailyAggregation() throws Exception {

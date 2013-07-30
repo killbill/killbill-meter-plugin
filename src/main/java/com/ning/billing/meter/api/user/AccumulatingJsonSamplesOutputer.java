@@ -28,7 +28,7 @@ import com.ning.billing.meter.timeline.consumer.CSVConsumer;
 import com.ning.billing.meter.timeline.consumer.CSVSampleProcessor;
 import com.ning.billing.meter.timeline.metrics.SamplesForMetricAndSource;
 import com.ning.billing.meter.timeline.persistent.TimelineDao;
-import com.ning.billing.util.callcontext.InternalTenantContext;
+import com.ning.billing.util.callcontext.TenantContext;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.base.Strings;
@@ -42,7 +42,7 @@ public class AccumulatingJsonSamplesOutputer extends JsonSamplesOutputer {
     private String lastMetric;
 
     public AccumulatingJsonSamplesOutputer(final TimeAggregationMode timeAggregationMode, final TimelineEventHandler timelineEventHandler,
-                                           final TimelineDao timelineDao, final InternalTenantContext context) {
+                                           final TimelineDao timelineDao, final TenantContext context) {
         super(timelineEventHandler, timelineDao, context);
         this.accumulatorSampleConsumer = new AccumulatorSampleConsumer(timeAggregationMode, new CSVSampleProcessor());
     }

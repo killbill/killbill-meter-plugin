@@ -19,26 +19,26 @@ package com.ning.billing.meter.timeline.aggregator;
 import java.util.List;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.BindBean;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 import org.skife.jdbi.v2.unstable.BindIn;
 
-import com.ning.billing.util.callcontext.InternalCallContext;
-import com.ning.billing.util.callcontext.InternalTenantContextBinder;
+import com.ning.billing.meter.timeline.MeterInternalCallContext;
 
 @UseStringTemplate3StatementLocator()
 public interface TimelineAggregatorSqlDao extends Transactional<TimelineAggregatorSqlDao> {
 
     @SqlUpdate
     void makeTimelineChunkValid(@Bind("chunkId") final long chunkId,
-                                @InternalTenantContextBinder final InternalCallContext context);
+                                @BindBean final MeterInternalCallContext context);
 
     @SqlUpdate
     void makeTimelineChunksInvalid(@BindIn("chunkIds") final List<Long> chunkIds,
-                                   @InternalTenantContextBinder final InternalCallContext context);
+                                   @BindBean final MeterInternalCallContext context);
 
     @SqlUpdate
     void deleteTimelineChunks(@BindIn("chunkIds") final List<Long> chunkIds,
-                              @InternalTenantContextBinder final InternalCallContext context);
+                              @BindBean final MeterInternalCallContext context);
 }

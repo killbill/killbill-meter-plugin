@@ -35,7 +35,7 @@ import com.ning.billing.meter.timeline.codec.DefaultSampleCoder;
 import com.ning.billing.meter.timeline.codec.SampleCoder;
 import com.ning.billing.meter.timeline.consumer.TimelineChunkConsumer;
 import com.ning.billing.meter.timeline.persistent.TimelineDao;
-import com.ning.billing.util.callcontext.InternalTenantContext;
+import com.ning.billing.util.callcontext.TenantContext;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,9 +47,9 @@ public abstract class JsonSamplesOutputer {
     protected final TimelineEventHandler timelineEventHandler;
     protected final TimelineDao timelineDao;
     protected final SampleCoder sampleCoder;
-    protected final InternalTenantContext context;
+    protected final TenantContext context;
 
-    public JsonSamplesOutputer(final TimelineEventHandler timelineEventHandler, final TimelineDao timelineDao, final InternalTenantContext context) {
+    public JsonSamplesOutputer(final TimelineEventHandler timelineEventHandler, final TimelineDao timelineDao, final TenantContext context) {
         this.timelineEventHandler = timelineEventHandler;
         this.timelineDao = timelineDao;
         this.sampleCoder = new DefaultSampleCoder();

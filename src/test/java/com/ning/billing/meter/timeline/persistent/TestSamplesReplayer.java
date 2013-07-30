@@ -23,7 +23,6 @@ import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -39,10 +38,6 @@ import com.ning.billing.meter.timeline.samples.ScalarSample;
 import com.ning.billing.meter.timeline.sources.SourceSamplesForTimestamp;
 import com.ning.billing.meter.timeline.times.DefaultTimelineCoder;
 import com.ning.billing.meter.timeline.times.TimelineCoder;
-import com.ning.billing.util.cache.CacheControllerDispatcher;
-import com.ning.billing.util.callcontext.InternalCallContextFactory;
-import com.ning.billing.util.clock.ClockMock;
-import com.ning.billing.util.dao.NonEntityDao;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -58,9 +53,6 @@ public class TestSamplesReplayer extends MeterTestSuiteNoDB {
     private static final File basePath = new File(System.getProperty("java.io.tmpdir"), "TestSamplesReplayer-" + System.currentTimeMillis());
     private static final TimelineCoder timelineCoder = new DefaultTimelineCoder();
     private static final SampleCoder sampleCoder = new DefaultSampleCoder();
-
-    private final NonEntityDao nonEntityDao = Mockito.mock(NonEntityDao.class);
-    private final InternalCallContextFactory internalCallContextFactory = new InternalCallContextFactory(new ClockMock(), nonEntityDao, new CacheControllerDispatcher());
 
     @BeforeMethod(groups = "fast")
     public void setUp() throws Exception {
@@ -101,7 +93,7 @@ public class TestSamplesReplayer extends MeterTestSuiteNoDB {
         // Try to encode them again
         final MockTimelineDao dao = new MockTimelineDao();
         final TimelineSourceEventAccumulator accumulator = new TimelineSourceEventAccumulator(dao, timelineCoder, sampleCoder, HOST_ID,
-                                                                                              EVENT_CATEGORY_ID, hostSamples.get(0).getTimestamp(), internalCallContextFactory);
+                                                                                              EVENT_CATEGORY_ID, hostSamples.get(0).getTimestamp());
         for (final SourceSamplesForTimestamp samplesFound : hostSamples) {
             accumulator.addSourceSamples(samplesFound);
         }

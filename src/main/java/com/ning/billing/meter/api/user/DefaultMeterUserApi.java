@@ -31,9 +31,6 @@ import com.ning.billing.meter.api.TimeAggregationMode;
 import com.ning.billing.meter.timeline.TimelineEventHandler;
 import com.ning.billing.meter.timeline.persistent.TimelineDao;
 import com.ning.billing.util.callcontext.CallContext;
-import com.ning.billing.util.callcontext.InternalCallContext;
-import com.ning.billing.util.callcontext.InternalCallContextFactory;
-import com.ning.billing.util.callcontext.InternalTenantContext;
 import com.ning.billing.util.callcontext.TenantContext;
 
 import com.google.common.collect.ImmutableList;
@@ -46,15 +43,12 @@ public class DefaultMeterUserApi implements MeterUserApi {
 
     private final TimelineEventHandler timelineEventHandler;
     private final TimelineDao timelineDao;
-    private final InternalCallContextFactory internalCallContextFactory;
 
     @Inject
     public DefaultMeterUserApi(final TimelineEventHandler timelineEventHandler,
-                               final TimelineDao timelineDao,
-                               final InternalCallContextFactory internalCallContextFactory) {
+                               final TimelineDao timelineDao) {
         this.timelineEventHandler = timelineEventHandler;
         this.timelineDao = timelineDao;
-        this.internalCallContextFactory = internalCallContextFactory;
     }
 
     @Override
@@ -73,8 +67,7 @@ public class DefaultMeterUserApi implements MeterUserApi {
     public void getUsage(final OutputStream outputStream, final TimeAggregationMode timeAggregationMode,
                          final String source, final Map<String, Collection<String>> metricsPerCategory,
                          final DateTime fromTimestamp, final DateTime toTimestamp, final TenantContext context) throws IOException {
-        final InternalTenantContext internalTenantContext = internalCallContextFactory.createInternalTenantContext(context);
-        final JsonSamplesOutputer outputerJson = new AccumulatingJsonSamplesOutputer(timeAggregationMode, timelineEventHandler, timelineDao, internalTenantContext);
+        final JsonSamplesOutputer outputerJson = new AccumulatingJsonSamplesOutputer(timeAggregationMode, timelineEventHandler, timelineDao, context);
         outputerJson.output(outputStream, ImmutableList.<String>of(source), metricsPerCategory, fromTimestamp, toTimestamp);
     }
 
@@ -82,8 +75,7 @@ public class DefaultMeterUserApi implements MeterUserApi {
     public void getUsage(final OutputStream outputStream, final DecimationMode decimationMode, @Nullable final Integer outputCount,
                          final String source, final Map<String, Collection<String>> metricsPerCategory,
                          final DateTime fromTimestamp, final DateTime toTimestamp, final TenantContext context) throws IOException {
-        final InternalTenantContext internalTenantContext = internalCallContextFactory.createInternalTenantContext(context);
-        final JsonSamplesOutputer outputerJson = new DecimatingJsonSamplesOutputer(decimationMode, outputCount, timelineEventHandler, timelineDao, internalTenantContext);
+        final JsonSamplesOutputer outputerJson = new DecimatingJsonSamplesOutputer(decimationMode, outputCount, timelineEventHandler, timelineDao, context);
         outputerJson.output(outputStream, ImmutableList.<String>of(source), metricsPerCategory, fromTimestamp, toTimestamp);
     }
 
@@ -101,8 +93,7 @@ public class DefaultMeterUserApi implements MeterUserApi {
     @Override
     public void getUsage(final OutputStream outputStream, final String source, final Map<String, Collection<String>> metricsPerCategory,
                          final DateTime fromTimestamp, final DateTime toTimestamp, final TenantContext context) throws IOException {
-        final InternalTenantContext internalTenantContext = internalCallContextFactory.createInternalTenantContext(context);
-        final JsonSamplesOutputer outputerJson = new DefaultJsonSamplesOutputer(timelineEventHandler, timelineDao, internalTenantContext);
+        final JsonSamplesOutputer outputerJson = new DefaultJsonSamplesOutputer(timelineEventHandler, timelineDao, context);
         outputerJson.output(outputStream, ImmutableList.<String>of(source), metricsPerCategory, fromTimestamp, toTimestamp);
     }
 
@@ -127,10 +118,8 @@ public class DefaultMeterUserApi implements MeterUserApi {
     @Override
     public void recordUsage(final String source, final Map<String, Map<String, Object>> samplesForCategoriesAndMetrics,
                             final DateTime timestamp, final CallContext context) {
-        final InternalCallContext internalCallContext = internalCallContextFactory.createInternalCallContext(context);
         for (final String category : samplesForCategoriesAndMetrics.keySet()) {
-            timelineEventHandler.record(source, category, timestamp, samplesForCategoriesAndMetrics.get(category),
-                                        internalCallContext);
+            timelineEventHandler.record(source, category, timestamp, samplesForCategoriesAndMetrics.get(category), context);
         }
     }
 }

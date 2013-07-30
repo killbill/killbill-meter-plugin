@@ -28,8 +28,8 @@ import com.ning.billing.meter.timeline.categories.CategoryRecordIdAndMetric;
 import com.ning.billing.meter.timeline.chunks.TimelineChunk;
 import com.ning.billing.meter.timeline.consumer.TimelineChunkConsumer;
 import com.ning.billing.meter.timeline.shutdown.StartTimes;
-import com.ning.billing.util.callcontext.InternalCallContext;
-import com.ning.billing.util.callcontext.InternalTenantContext;
+import com.ning.billing.util.callcontext.CallContext;
+import com.ning.billing.util.callcontext.TenantContext;
 
 import com.google.common.collect.BiMap;
 
@@ -37,52 +37,52 @@ public interface TimelineDao {
 
     // Sources table
 
-    Integer getSourceId(String source, InternalTenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    Integer getSourceId(String source, TenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
-    String getSource(Integer sourceId, InternalTenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    String getSource(Integer sourceId, TenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
-    BiMap<Integer, String> getSources(InternalTenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    BiMap<Integer, String> getSources(TenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
-    int getOrAddSource(String source, InternalCallContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    int getOrAddSource(String source, CallContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
     // Event categories table
 
-    Integer getEventCategoryId(String eventCategory, InternalTenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    Integer getEventCategoryId(String eventCategory, TenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
-    String getEventCategory(Integer eventCategoryId, InternalTenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    String getEventCategory(Integer eventCategoryId, TenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
-    BiMap<Integer, String> getEventCategories(InternalTenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    BiMap<Integer, String> getEventCategories(TenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
-    int getOrAddEventCategory(String eventCategory, InternalCallContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    int getOrAddEventCategory(String eventCategory, CallContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
     // Metrics table
 
-    Integer getMetricId(int eventCategory, String metric, InternalTenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    Integer getMetricId(int eventCategory, String metric, TenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
-    CategoryRecordIdAndMetric getCategoryIdAndMetric(Integer metricId, InternalTenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    CategoryRecordIdAndMetric getCategoryIdAndMetric(Integer metricId, TenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
-    BiMap<Integer, CategoryRecordIdAndMetric> getMetrics(InternalTenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    BiMap<Integer, CategoryRecordIdAndMetric> getMetrics(TenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
-    int getOrAddMetric(Integer eventCategoryId, String metric, InternalCallContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    int getOrAddMetric(Integer eventCategoryId, String metric, CallContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
     // Timelines tables
 
-    Long insertTimelineChunk(TimelineChunk timelineChunk, InternalCallContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    Long insertTimelineChunk(TimelineChunk timelineChunk, CallContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
     void getSamplesBySourceIdsAndMetricIds(List<Integer> sourceIds,
                                            @Nullable List<Integer> metricIds,
                                            DateTime startTime,
                                            DateTime endTime,
                                            TimelineChunkConsumer chunkConsumer,
-                                           InternalTenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+                                           TenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 
-    Integer insertLastStartTimes(StartTimes startTimes, InternalCallContext context);
+    Integer insertLastStartTimes(StartTimes startTimes, CallContext context);
 
-    StartTimes getLastStartTimes(InternalTenantContext context);
+    StartTimes getLastStartTimes(TenantContext context);
 
-    void deleteLastStartTimes(InternalCallContext context);
+    void deleteLastStartTimes(CallContext context);
 
-    void bulkInsertTimelineChunks(List<TimelineChunk> timelineChunkList, InternalCallContext context);
+    void bulkInsertTimelineChunks(List<TimelineChunk> timelineChunkList, CallContext context);
 
-    void test(InternalTenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
+    void test(TenantContext context) throws UnableToObtainConnectionException, CallbackFailedException;
 }

@@ -37,17 +37,15 @@ import org.skife.jdbi.v2.tweak.HandleCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ning.billing.meter.MeterConfig;
+import com.ning.billing.meter.timeline.MeterInternalCallContext;
+import com.ning.billing.meter.timeline.MeterInternalTenantContext;
 import com.ning.billing.meter.timeline.chunks.TimelineChunk;
 import com.ning.billing.meter.timeline.chunks.TimelineChunkMapper;
 import com.ning.billing.meter.timeline.codec.SampleCoder;
 import com.ning.billing.meter.timeline.consumer.TimelineChunkConsumer;
 import com.ning.billing.meter.timeline.persistent.TimelineDao;
 import com.ning.billing.meter.timeline.times.TimelineCoder;
-import com.ning.billing.util.callcontext.CallOrigin;
-import com.ning.billing.util.callcontext.InternalCallContext;
-import com.ning.billing.util.callcontext.InternalCallContextFactory;
-import com.ning.billing.util.callcontext.UserType;
-import com.ning.billing.util.config.MeterConfig;
 
 import com.google.inject.Inject;
 
@@ -67,7 +65,6 @@ public class TimelineAggregator {
     private final MeterConfig config;
     private final TimelineAggregatorSqlDao aggregatorSqlDao;
     private final TimelineChunkMapper timelineChunkMapper;
-    private final InternalCallContextFactory internalCallContextFactory;
 
     private final ScheduledExecutorService aggregatorThread = Executors.newSingleThreadScheduledExecutor();
 
@@ -95,7 +92,7 @@ public class TimelineAggregator {
 
     @Inject
     public TimelineAggregator(final IDBI dbi, final TimelineDao timelineDao, final TimelineCoder timelineCoder,
-                              final SampleCoder sampleCoder, final MeterConfig config, final InternalCallContextFactory internalCallContextFactory) {
+                              final SampleCoder sampleCoder, final MeterConfig config) {
         this.dbi = dbi;
         this.timelineDao = timelineDao;
         this.timelineCoder = timelineCoder;
@@ -103,7 +100,6 @@ public class TimelineAggregator {
         this.config = config;
         this.aggregatorSqlDao = dbi.onDemand(TimelineAggregatorSqlDao.class);
         this.timelineChunkMapper = new TimelineChunkMapper();
-        this.internalCallContextFactory = internalCallContextFactory;
     }
 
     private int aggregateTimelineCandidates(final List<TimelineChunk> timelineChunkCandidates, final int aggregationLevel, final int chunksToAggregate) {
@@ -185,7 +181,7 @@ public class TimelineAggregator {
     }
 
     private void performWrites() {
-        final InternalCallContext context = createCallContext();
+        final MeterInternalCallContext context = new MeterInternalCallContext();
 
         // This is the atomic operation: bulk insert the new aggregated TimelineChunk objects, and delete
         // or invalidate the ones that were aggregated.  This should be very fast.
@@ -301,7 +297,7 @@ public class TimelineAggregator {
                     final Query<Map<String, Object>> query = handle.createQuery("getStreamingAggregationCandidates")
                                                                    .setFetchSize(Integer.MIN_VALUE)
                                                                    .bind("aggregationLevel", aggregationLevel)
-                                                                   .bind("tenantRecordId", createCallContext().getTenantRecordId());
+                                                                   .bind("tenantRecordId", MeterInternalTenantContext.INTERNAL_TENANT_RECORD_ID);
                     query.setStatementLocator(new StringTemplate3StatementLocator(TimelineAggregatorSqlDao.class));
                     ResultIterator<TimelineChunk> iterator = null;
                     try {
@@ -429,10 +425,5 @@ public class TimelineAggregator {
                 getAndProcessTimelineAggregationCandidates();
             }
         });
-    }
-
-    private InternalCallContext createCallContext() {
-        // TODO add teantRecordId and accountRecordId
-        return internalCallContextFactory.createInternalCallContext(InternalCallContextFactory.INTERNAL_TENANT_RECORD_ID, null, "TimelineAggregator", CallOrigin.INTERNAL, UserType.SYSTEM, null);
     }
 }

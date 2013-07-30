@@ -22,11 +22,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.joda.time.DateTime;
-import org.mockito.Mockito;
 import org.skife.config.ConfigurationObjectFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.ning.billing.meter.MeterConfig;
 import com.ning.billing.meter.MeterTestSuiteNoDB;
 import com.ning.billing.meter.timeline.codec.DefaultSampleCoder;
 import com.ning.billing.meter.timeline.codec.SampleCoder;
@@ -35,11 +35,6 @@ import com.ning.billing.meter.timeline.samples.ScalarSample;
 import com.ning.billing.meter.timeline.sources.SourceSamplesForTimestamp;
 import com.ning.billing.meter.timeline.times.DefaultTimelineCoder;
 import com.ning.billing.meter.timeline.times.TimelineCoder;
-import com.ning.billing.util.cache.CacheControllerDispatcher;
-import com.ning.billing.util.callcontext.InternalCallContextFactory;
-import com.ning.billing.util.clock.ClockMock;
-import com.ning.billing.util.config.MeterConfig;
-import com.ning.billing.util.dao.NonEntityDao;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -50,9 +45,6 @@ public class TestTimelineEventHandler extends MeterTestSuiteNoDB {
     private static final TimelineCoder timelineCoder = new DefaultTimelineCoder();
     private static final SampleCoder sampleCoder = new DefaultSampleCoder();
 
-    private final NonEntityDao nonEntityDao = Mockito.mock(NonEntityDao.class);
-    private final InternalCallContextFactory internalCallContextFactory = new InternalCallContextFactory(new ClockMock(), nonEntityDao, new CacheControllerDispatcher());
-
     private final TimelineDao dao = new MockTimelineDao();
 
     @Test(groups = "fast")
@@ -60,15 +52,15 @@ public class TestTimelineEventHandler extends MeterTestSuiteNoDB {
         Assert.assertTrue(basePath.mkdir());
         System.setProperty("killbill.usage.timelines.spoolDir", basePath.getAbsolutePath());
         final MeterConfig config = new ConfigurationObjectFactory(System.getProperties()).build(MeterConfig.class);
-        final int eventTypeId = dao.getOrAddEventCategory(EVENT_TYPE, internalCallContext);
-        final int int2shortId = dao.getOrAddMetric(eventTypeId, "int2short", internalCallContext);
-        final int long2intId = dao.getOrAddMetric(eventTypeId, "long2int", internalCallContext);
-        final int long2shortId = dao.getOrAddMetric(eventTypeId, "long2short", internalCallContext);
-        final int int2intId = dao.getOrAddMetric(eventTypeId, "int2int", internalCallContext);
-        final int long2longId = dao.getOrAddMetric(eventTypeId, "long2long", internalCallContext);
+        final int eventTypeId = dao.getOrAddEventCategory(EVENT_TYPE, callContext);
+        final int int2shortId = dao.getOrAddMetric(eventTypeId, "int2short", callContext);
+        final int long2intId = dao.getOrAddMetric(eventTypeId, "long2int", callContext);
+        final int long2shortId = dao.getOrAddMetric(eventTypeId, "long2short", callContext);
+        final int int2intId = dao.getOrAddMetric(eventTypeId, "int2int", callContext);
+        final int long2longId = dao.getOrAddMetric(eventTypeId, "long2long", callContext);
         final int hostId = 1;
         final TimelineEventHandler handler = new TimelineEventHandler(config, dao, timelineCoder, sampleCoder,
-                                                                      new BackgroundDBChunkWriter(dao, config, internalCallContextFactory), new MockFileBackedBuffer());
+                                                                      new BackgroundDBChunkWriter(dao, config), new MockFileBackedBuffer());
 
         // Test downsizing of values
         final Map<String, Object> event = ImmutableMap.<String, Object>of(
@@ -93,14 +85,14 @@ public class TestTimelineEventHandler extends MeterTestSuiteNoDB {
 
     private Map<Integer, ScalarSample> convertEventToSamples(final TimelineEventHandler handler, final Map<String, Object> event, final String eventType) {
         final Map<Integer, ScalarSample> output = new HashMap<Integer, ScalarSample>();
-        handler.convertSamplesToScalarSamples(eventType, event, output, internalCallContext);
+        handler.convertSamplesToScalarSamples(eventType, event, output, callContext);
         return output;
     }
 
     private void processOneEvent(final TimelineEventHandler handler, final int hostId, final String eventType, final String sampleKind, final DateTime timestamp) throws Exception {
         final Map<String, Object> rawEvent = ImmutableMap.<String, Object>of(sampleKind, new Integer(1));
         final Map<Integer, ScalarSample> convertedEvent = convertEventToSamples(handler, rawEvent, eventType);
-        handler.processSamples(new SourceSamplesForTimestamp(hostId, eventType, timestamp, convertedEvent), internalCallContext);
+        handler.processSamples(new SourceSamplesForTimestamp(hostId, eventType, timestamp, convertedEvent), callContext);
     }
 
     private void sleep(final int millis) {
@@ -115,7 +107,7 @@ public class TestTimelineEventHandler extends MeterTestSuiteNoDB {
     public void testPurgeAccumulators() throws Exception {
         System.setProperty("arecibo.collector.timelines.spoolDir", basePath.getAbsolutePath());
         final MeterConfig config = new ConfigurationObjectFactory(System.getProperties()).build(MeterConfig.class);
-        final TimelineEventHandler handler = new TimelineEventHandler(config, dao, timelineCoder, sampleCoder, new BackgroundDBChunkWriter(dao, config, internalCallContextFactory), new MockFileBackedBuffer());
+        final TimelineEventHandler handler = new TimelineEventHandler(config, dao, timelineCoder, sampleCoder, new BackgroundDBChunkWriter(dao, config), new MockFileBackedBuffer());
         Assert.assertEquals(handler.getAccumulators().size(), 0);
         processOneEvent(handler, 1, "eventType1", "sampleKind1", new DateTime());
         sleep(20);

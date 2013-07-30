@@ -16,32 +16,41 @@
 
 package com.ning.billing.meter.osgi;
 
-import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-import com.ning.billing.meter.DefaultMeterService;
 import com.ning.billing.meter.MeterService;
 import com.ning.billing.meter.glue.MeterModule;
+import com.ning.killbill.osgi.libs.killbill.KillbillActivatorBase;
+import com.ning.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Stage;
 
-public class MeterActivator implements BundleActivator {
+public class MeterActivator extends KillbillActivatorBase {
 
-    private DefaultMeterService meterService = null;
+    private MeterService meterService = null;
 
     @Override
     public void start(final BundleContext context) throws Exception {
-        final Injector injector = Guice.createInjector(Stage.PRODUCTION, new MeterModule());
-        meterService = (DefaultMeterService) injector.getInstance(MeterService.class);
+        super.start(context);
+
+        final Injector injector = Guice.createInjector(Stage.PRODUCTION, new MeterModule(dataSource.getDataSource()));
+        meterService = (MeterService) injector.getInstance(MeterService.class);
         meterService.start();
     }
 
     @Override
     public void stop(final BundleContext context) throws Exception {
+        super.stop(context);
+
         if (meterService != null) {
             meterService.stop();
         }
+    }
+
+    @Override
+    public OSGIKillbillEventHandler getOSGIKillbillEventHandler() {
+        return null;
     }
 }

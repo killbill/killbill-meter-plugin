@@ -27,7 +27,7 @@ import com.ning.billing.meter.timeline.consumer.CSVConsumer;
 import com.ning.billing.meter.timeline.consumer.TimelineChunkDecoded;
 import com.ning.billing.meter.timeline.metrics.SamplesForMetricAndSource;
 import com.ning.billing.meter.timeline.persistent.TimelineDao;
-import com.ning.billing.util.callcontext.InternalTenantContext;
+import com.ning.billing.util.callcontext.TenantContext;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -39,7 +39,7 @@ public class DebugJsonSamplesOutputer extends JsonSamplesOutputer {
     private final ObjectWriter writer;
 
     public DebugJsonSamplesOutputer(final boolean withBinaryData, final TimelineEventHandler timelineEventHandler,
-                                    final TimelineDao timelineDao, final InternalTenantContext context) {
+                                    final TimelineDao timelineDao, final TenantContext context) {
         super(timelineEventHandler, timelineDao, context);
         this.withBinaryData = withBinaryData;
         if (withBinaryData) {

@@ -39,6 +39,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ning.billing.meter.MeterConfig;
 import com.ning.billing.meter.timeline.chunks.TimelineChunk;
 import com.ning.billing.meter.timeline.codec.SampleCoder;
 import com.ning.billing.meter.timeline.persistent.FileBackedBuffer;
@@ -49,9 +50,8 @@ import com.ning.billing.meter.timeline.shutdown.ShutdownSaveMode;
 import com.ning.billing.meter.timeline.shutdown.StartTimes;
 import com.ning.billing.meter.timeline.sources.SourceSamplesForTimestamp;
 import com.ning.billing.meter.timeline.times.TimelineCoder;
-import com.ning.billing.util.callcontext.InternalCallContext;
-import com.ning.billing.util.callcontext.InternalTenantContext;
-import com.ning.billing.util.config.MeterConfig;
+import com.ning.billing.util.callcontext.CallContext;
+import com.ning.billing.util.callcontext.TenantContext;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -207,7 +207,7 @@ public class TimelineEventHandler {
      * @param context        the call context
      */
     public void record(final String sourceName, final String eventType, final DateTime eventTimestamp,
-                       final Map<String, Object> samples, final InternalCallContext context) {
+                       final Map<String, Object> samples, final CallContext context) {
         if (shuttingDown.get()) {
             eventsReceivedAfterShuttingDown.incrementAndGet();
             return;
@@ -263,7 +263,7 @@ public class TimelineEventHandler {
     }
 
     @VisibleForTesting
-    public void processSamples(final SourceSamplesForTimestamp hostSamples, final InternalTenantContext context) throws ExecutionException, IOException {
+    public void processSamples(final SourceSamplesForTimestamp hostSamples, final TenantContext context) throws ExecutionException, IOException {
         final int sourceId = hostSamples.getSourceId();
         final String category = hostSamples.getCategory();
         final int categoryId = timelineDAO.getEventCategoryId(category, context);
@@ -273,18 +273,18 @@ public class TimelineEventHandler {
     }
 
     public Collection<? extends TimelineChunk> getInMemoryTimelineChunks(final Integer sourceId, @Nullable final DateTime filterStartTime,
-                                                                         @Nullable final DateTime filterEndTime, final InternalTenantContext context) throws IOException, ExecutionException {
+                                                                         @Nullable final DateTime filterEndTime, final TenantContext context) throws IOException, ExecutionException {
         return getInMemoryTimelineChunks(sourceId, ImmutableList.copyOf(timelineDAO.getMetrics(context).keySet()), filterStartTime, filterEndTime, context);
     }
 
     public Collection<? extends TimelineChunk> getInMemoryTimelineChunks(final Integer sourceId, final Integer metricId, @Nullable final DateTime filterStartTime,
-                                                                         @Nullable final DateTime filterEndTime, final InternalTenantContext context) throws IOException, ExecutionException {
+                                                                         @Nullable final DateTime filterEndTime, final TenantContext context) throws IOException, ExecutionException {
         return getInMemoryTimelineChunks(sourceId, ImmutableList.<Integer>of(metricId), filterStartTime, filterEndTime, context);
     }
 
     public synchronized Collection<? extends TimelineChunk> getInMemoryTimelineChunks(final Integer sourceId, final List<Integer> metricIds,
                                                                                       @Nullable final DateTime filterStartTime, @Nullable final DateTime filterEndTime,
-                                                                                      final InternalTenantContext context) throws IOException, ExecutionException {
+                                                                                      final TenantContext context) throws IOException, ExecutionException {
         getInMemoryChunksCallCount.incrementAndGet();
         // Check first if there is an in-memory accumulator for this host
         final SourceAccumulatorsAndUpdateDate sourceAccumulatorsAndDate = accumulators.get(sourceId);
@@ -310,7 +310,7 @@ public class TimelineEventHandler {
 
     @VisibleForTesting
     void convertSamplesToScalarSamples(final String eventType, final Map<String, Object> inputSamples,
-                                       final Map<Integer, ScalarSample> outputSamples, final InternalCallContext context) {
+                                       final Map<Integer, ScalarSample> outputSamples, final CallContext context) {
         if (inputSamples == null) {
             return;
         }
@@ -324,7 +324,7 @@ public class TimelineEventHandler {
         }
     }
 
-    public void replay(final String spoolDir, final InternalCallContext context) {
+    public void replay(final String spoolDir, final CallContext context) {
         replayCount.incrementAndGet();
         log.info("Starting replay of files in {}", spoolDir);
         final Replayer replayer = new Replayer(spoolDir);
@@ -402,7 +402,7 @@ public class TimelineEventHandler {
         log.info("Timelines committed");
     }
 
-    public void commitAndShutdown(final InternalCallContext context) {
+    public void commitAndShutdown(final CallContext context) {
         shuttingDown.set(true);
         final boolean doingFastShutdown = shutdownSaveMode == ShutdownSaveMode.SAVE_START_TIMES;
         if (doingFastShutdown) {

@@ -45,15 +45,16 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
+import com.ning.billing.clock.Clock;
+import com.ning.billing.meter.MeterCallContext;
+import com.ning.billing.meter.MeterTenantContext;
 import com.ning.billing.meter.api.TimeAggregationMode;
 import com.ning.billing.meter.api.user.MeterUserApi;
 import com.ning.billing.tenant.api.Tenant;
 import com.ning.billing.util.callcontext.CallContext;
-import com.ning.billing.util.callcontext.CallContextFactory;
 import com.ning.billing.util.callcontext.CallOrigin;
 import com.ning.billing.util.callcontext.TenantContext;
 import com.ning.billing.util.callcontext.UserType;
-import com.ning.billing.util.clock.Clock;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -82,15 +83,12 @@ public class MeterResource {
 
     private final MeterUserApi meterApi;
     private final Clock clock;
-    private final CallContextFactory contextFactory;
 
     @Inject
     public MeterResource(final MeterUserApi meterApi,
-                         final Clock clock,
-                         final CallContextFactory factory) {
+                         final Clock clock) {
         this.meterApi = meterApi;
         this.clock = clock;
-        this.contextFactory = factory;
     }
 
     @GET
@@ -202,8 +200,8 @@ public class MeterResource {
         try {
             Preconditions.checkNotNull(createdBy, String.format("Header %s needs to be set", HDR_CREATED_BY));
             final Tenant tenant = getTenantFromRequest(request);
-            return contextFactory.createCallContext(tenant == null ? null : tenant.getId(), createdBy, CallOrigin.EXTERNAL, UserType.CUSTOMER, reason,
-                                                    comment, UUID.randomUUID());
+            return new MeterCallContext(tenant == null ? null : tenant.getId(), createdBy, CallOrigin.EXTERNAL, UserType.CUSTOMER, reason,
+                                        comment, UUID.randomUUID(), clock.getUTCNow());
         } catch (NullPointerException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -213,9 +211,9 @@ public class MeterResource {
         final Tenant tenant = getTenantFromRequest(request);
         if (tenant == null) {
             // Multi-tenancy may not have been configured - default to "default" tenant (see InternalCallContextFactory)
-            return contextFactory.createTenantContext(null);
+            return new MeterTenantContext();
         } else {
-            return contextFactory.createTenantContext(tenant.getId());
+            return new MeterTenantContext(tenant.getId());
         }
     }
 

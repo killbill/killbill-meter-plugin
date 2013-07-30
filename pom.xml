@@ -12,10 +12,10 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>com.ning.billing</groupId>
-        <version>0.3.0</version>
+        <version>0.3.8</version>
     </parent>
     <artifactId>killbill-osgi-bundles-meter</artifactId>
-    <version>0.3.3-SNAPSHOT</version>
+    <version>0.4.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Killbill billing platform: OSGI Metering bundle</name>
     <description>Kill Bill meter plugin</description>
@@ -72,16 +72,30 @@
         <dependency>
             <groupId>com.ning.billing</groupId>
             <artifactId>killbill-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.ning.billing</groupId>
-            <artifactId>killbill-util</artifactId>
+            <artifactId>killbill-osgi-bundles-lib-killbill</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing</groupId>
-            <artifactId>killbill-util</artifactId>
+            <groupId>com.ning.billing.commons</groupId>
+            <artifactId>killbill-clock</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ning.billing.commons</groupId>
+            <artifactId>killbill-clock</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.ning.billing.commons</groupId>
+            <artifactId>killbill-embeddeddb</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.ning.billing.commons</groupId>
+            <artifactId>killbill-jdbi</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>

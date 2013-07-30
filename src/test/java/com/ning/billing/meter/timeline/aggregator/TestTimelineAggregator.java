@@ -24,12 +24,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.mockito.Mockito;
 import org.skife.config.ConfigurationObjectFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.ning.billing.meter.MeterConfig;
 import com.ning.billing.meter.MeterTestSuiteWithEmbeddedDB;
 import com.ning.billing.meter.timeline.TimelineSourceEventAccumulator;
 import com.ning.billing.meter.timeline.chunks.TimelineChunk;
@@ -43,11 +43,6 @@ import com.ning.billing.meter.timeline.samples.ScalarSample;
 import com.ning.billing.meter.timeline.sources.SourceSamplesForTimestamp;
 import com.ning.billing.meter.timeline.times.DefaultTimelineCoder;
 import com.ning.billing.meter.timeline.times.TimelineCoder;
-import com.ning.billing.util.cache.CacheControllerDispatcher;
-import com.ning.billing.util.callcontext.InternalCallContextFactory;
-import com.ning.billing.util.clock.ClockMock;
-import com.ning.billing.util.config.MeterConfig;
-import com.ning.billing.util.dao.NonEntityDao;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -64,9 +59,6 @@ public class TestTimelineAggregator extends MeterTestSuiteWithEmbeddedDB {
     private static final TimelineCoder timelineCoder = new DefaultTimelineCoder();
     private static final SampleCoder sampleCoder = new DefaultSampleCoder();
 
-    private final NonEntityDao nonEntityDao = Mockito.mock(NonEntityDao.class);
-    private final InternalCallContextFactory internalCallContextFactory = new InternalCallContextFactory(new ClockMock(), nonEntityDao, new CacheControllerDispatcher());
-
     private TimelineDao timelineDao;
     private TimelineAggregator aggregator;
 
@@ -80,22 +72,22 @@ public class TestTimelineAggregator extends MeterTestSuiteWithEmbeddedDB {
         final Properties properties = System.getProperties();
         properties.put("killbill.usage.timelines.chunksToAggregate", "2,2");
         final MeterConfig config = new ConfigurationObjectFactory(properties).build(MeterConfig.class);
-        aggregator = new TimelineAggregator(getDBI(), timelineDao, timelineCoder, sampleCoder, config, internalCallContextFactory);
+        aggregator = new TimelineAggregator(getDBI(), timelineDao, timelineCoder, sampleCoder, config);
     }
 
     @Test(groups = "mysql")
     public void testAggregation() throws Exception {
         // Create the host
-        hostId = timelineDao.getOrAddSource(HOST_NAME, internalCallContext);
+        hostId = timelineDao.getOrAddSource(HOST_NAME, callContext);
         Assert.assertNotNull(hostId);
-        Assert.assertEquals(timelineDao.getSources(internalCallContext).values().size(), 1);
+        Assert.assertEquals(timelineDao.getSources(callContext).values().size(), 1);
 
         // Create the sample kinds
-        minHeapUsedKindId = timelineDao.getOrAddMetric(EVENT_TYPE_ID, MIN_HEAPUSED_KIND, internalCallContext);
+        minHeapUsedKindId = timelineDao.getOrAddMetric(EVENT_TYPE_ID, MIN_HEAPUSED_KIND, callContext);
         Assert.assertNotNull(minHeapUsedKindId);
-        maxHeapUsedKindId = timelineDao.getOrAddMetric(EVENT_TYPE_ID, MAX_HEAPUSED_KIND, internalCallContext);
+        maxHeapUsedKindId = timelineDao.getOrAddMetric(EVENT_TYPE_ID, MAX_HEAPUSED_KIND, callContext);
         Assert.assertNotNull(maxHeapUsedKindId);
-        Assert.assertEquals(timelineDao.getMetrics(internalCallContext).values().size(), 2);
+        Assert.assertEquals(timelineDao.getMetrics(callContext).values().size(), 2);
 
         // Create two sets of times: T - 125 ... T - 65 ; T - 60 ... T (note the gap!)
         createAOneHourTimelineChunk(125);
@@ -114,8 +106,8 @@ public class TestTimelineAggregator extends MeterTestSuiteWithEmbeddedDB {
 
         aggregator.getAndProcessTimelineAggregationCandidates();
 
-        Assert.assertEquals(timelineDao.getSources(internalCallContext).values().size(), 1);
-        Assert.assertEquals(timelineDao.getMetrics(internalCallContext).values().size(), 2);
+        Assert.assertEquals(timelineDao.getSources(callContext).values().size(), 1);
+        Assert.assertEquals(timelineDao.getMetrics(callContext).values().size(), 2);
 
         // Similar than above, but we have only 2 now
         checkSamplesForATimeline(185, 126, 0);
@@ -141,14 +133,14 @@ public class TestTimelineAggregator extends MeterTestSuiteWithEmbeddedDB {
                 Assert.assertTrue(chunk.getMetricId() == minHeapUsedKindId || chunk.getMetricId() == maxHeapUsedKindId);
                 timelineChunkSeen.incrementAndGet();
             }
-        }, internalCallContext);
+        }, callContext);
 
         Assert.assertEquals(timelineChunkSeen.get(), expectedChunks);
     }
 
     private void createAOneHourTimelineChunk(final int startTimeMinutesAgo) throws IOException {
         final DateTime firstSampleTime = START_TIME.minusMinutes(startTimeMinutesAgo);
-        final TimelineSourceEventAccumulator accumulator = new TimelineSourceEventAccumulator(timelineDao, timelineCoder, sampleCoder, hostId, EVENT_TYPE_ID, firstSampleTime, internalCallContextFactory);
+        final TimelineSourceEventAccumulator accumulator = new TimelineSourceEventAccumulator(timelineDao, timelineCoder, sampleCoder, hostId, EVENT_TYPE_ID, firstSampleTime);
         // 120 samples per hour
         for (int i = 0; i < 120; i++) {
             final DateTime eventDateTime = firstSampleTime.plusSeconds(i * 30);

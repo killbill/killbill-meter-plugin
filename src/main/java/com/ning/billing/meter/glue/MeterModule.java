@@ -18,14 +18,21 @@ package com.ning.billing.meter.glue;
 
 import java.io.IOException;
 
+import javax.sql.DataSource;
+
 import org.skife.config.ConfigSource;
 import org.skife.config.ConfigurationObjectFactory;
 import org.skife.config.SimplePropertyConfigSource;
+import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.IDBI;
 
-import com.ning.billing.meter.DefaultMeterService;
+import com.ning.billing.commons.jdbi.argument.DateTimeArgumentFactory;
+import com.ning.billing.commons.jdbi.argument.DateTimeZoneArgumentFactory;
+import com.ning.billing.commons.jdbi.argument.UUIDArgumentFactory;
+import com.ning.billing.meter.MeterConfig;
 import com.ning.billing.meter.MeterService;
-import com.ning.billing.meter.api.user.MeterUserApi;
 import com.ning.billing.meter.api.user.DefaultMeterUserApi;
+import com.ning.billing.meter.api.user.MeterUserApi;
 import com.ning.billing.meter.timeline.TimelineEventHandler;
 import com.ning.billing.meter.timeline.codec.DefaultSampleCoder;
 import com.ning.billing.meter.timeline.codec.SampleCoder;
@@ -33,20 +40,22 @@ import com.ning.billing.meter.timeline.persistent.FileBackedBuffer;
 import com.ning.billing.meter.timeline.persistent.TimelineDao;
 import com.ning.billing.meter.timeline.times.DefaultTimelineCoder;
 import com.ning.billing.meter.timeline.times.TimelineCoder;
-import com.ning.billing.util.config.MeterConfig;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.AbstractModule;
 
 public class MeterModule extends AbstractModule {
 
     private final ConfigSource configSource;
+    private final DataSource dataSource;
 
-    public MeterModule() {
-        this(new SimplePropertyConfigSource(System.getProperties()));
+    public MeterModule(final DataSource dataSource) {
+        this(new SimplePropertyConfigSource(System.getProperties()), dataSource);
     }
 
-    public MeterModule(final ConfigSource configSource) {
+    public MeterModule(final ConfigSource configSource, final DataSource dataSource) {
         this.configSource = configSource;
+        this.dataSource = dataSource;
     }
 
     protected MeterConfig installConfig() {
@@ -57,7 +66,17 @@ public class MeterModule extends AbstractModule {
     }
 
     protected void configureDao() {
+        bind(IDBI.class).toInstance(getDBI());
         bind(TimelineDao.class).toProvider(CachingDefaultTimelineDaoProvider.class).asEagerSingleton();
+    }
+
+    @VisibleForTesting
+    public IDBI getDBI() {
+        final DBI dbi = new DBI(dataSource);
+        dbi.registerArgumentFactory(new DateTimeArgumentFactory());
+        dbi.registerArgumentFactory(new DateTimeZoneArgumentFactory());
+        dbi.registerArgumentFactory(new UUIDArgumentFactory());
+        return dbi;
     }
 
     protected void configureTimelineObjects() {
@@ -82,7 +101,7 @@ public class MeterModule extends AbstractModule {
 
 
     protected void installMeterService() {
-        bind(MeterService.class).to(DefaultMeterService.class).asEagerSingleton();
+        bind(MeterService.class).asEagerSingleton();
     }
 
     protected void installTimelineEventHandler() {
