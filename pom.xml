@@ -12,7 +12,7 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>com.ning.billing</groupId>
-        <version>0.3.8</version>
+        <version>0.3.11</version>
     </parent>
     <artifactId>killbill-osgi-bundles-meter</artifactId>
     <version>0.4.1-SNAPSHOT</version>
