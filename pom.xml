@@ -1,21 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- ~ Copyright 2010-2011 Ning, Inc. ~ ~ Ning licenses this file to you
-    under the Apache License, version 2.0 ~ (the "License"); you may not use
-    this file except in compliance with the ~ License. You may obtain a copy
-    of the License at: ~ ~ http://www.apache.org/licenses/LICENSE-2.0 ~ ~ Unless
-    required by applicable law or agreed to in writing, software ~ distributed
-    under the License is distributed on an "AS IS" BASIS, WITHOUT ~ WARRANTIES
-    OR CONDITIONS OF ANY KIND, either express or implied. See the ~ License for
-    the specific language governing permissions and limitations ~ under the License. -->
+<!--
+  ~ Copyright 2010-2014 Ning, Inc.
+  ~ Copyright 2014 The Billing Project, LLC
+  ~
+  ~ Ning licenses this file to you under the Apache License, version 2.0
+  ~ (the "License"); you may not use this file except in compliance with the
+  ~ License.  You may obtain a copy of the License at:
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+  ~ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+  ~ License for the specific language governing permissions and limitations
+  ~ under the License.
+  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
-        <groupId>com.ning.billing</groupId>
-        <version>0.5.9</version>
+        <groupId>org.kill-bill.billing</groupId>
+        <version>0.5.29</version>
     </parent>
-    <artifactId>killbill-osgi-bundles-meter</artifactId>
-    <version>0.4.3-SNAPSHOT</version>
+    <groupId>org.kill-bill.billing.plugin.java</groupId>
+    <artifactId>meter-plugin</artifactId>
+    <version>0.5.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Killbill billing platform: OSGI Metering bundle</name>
     <description>Kill Bill meter plugin</description>
@@ -54,11 +63,12 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -68,34 +78,6 @@
         <dependency>
             <groupId>com.jolbox</groupId>
             <artifactId>bonecp</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.ning.billing</groupId>
-            <artifactId>killbill-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.ning.billing</groupId>
-            <artifactId>killbill-osgi-bundles-lib-killbill</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.ning.billing.commons</groupId>
-            <artifactId>killbill-clock</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.ning.billing.commons</groupId>
-            <artifactId>killbill-clock</artifactId>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.ning.billing.commons</groupId>
-            <artifactId>killbill-embeddeddb</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.ning.billing.commons</groupId>
-            <artifactId>killbill-jdbi</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -128,6 +110,39 @@
         <dependency>
             <groupId>org.jdbi</groupId>
             <artifactId>jdbi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.billing</groupId>
+            <artifactId>killbill-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.billing</groupId>
+            <artifactId>killbill-osgi-bundles-lib-killbill</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-clock</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-clock</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-embeddeddb-h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-embeddeddb-mysql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-jdbi</artifactId>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -173,8 +188,8 @@
                 </executions>
                 <configuration>
                     <instructions>
-                        <Bundle-Activator>com.ning.billing.meter.osgi.MeterActivator</Bundle-Activator>
-                        <Import-Package>*;resolution:=optional,com.ning.billing.osgi.api</Import-Package>
+                        <Bundle-Activator>org.killbill.billing.plugin.meter.osgi.MeterActivator</Bundle-Activator>
+                        <Import-Package>*;resolution:=optional,org.killbill.billing.osgi.api</Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
@@ -211,7 +226,7 @@
                         </goals>
                         <configuration>
                             <createSourcesJar>true</createSourcesJar>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
                             <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
                             <filters>
                                 <filter>
