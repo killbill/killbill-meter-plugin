@@ -33,7 +33,7 @@ public class TestCategoryAndMetrics extends MeterTestSuiteNoDB {
 
         final ObjectMapper mapper = new ObjectMapper();
         final String json = mapper.writeValueAsString(kinds);
-        Assert.assertEquals("{\"eventCategory\":\"JVM\",\"metrics\":[\"GC\",\"CPU\"]}", json);
+        Assert.assertEquals("{\"eventCategory\":\"JVM\",\"metrics\":[\"CPU\",\"GC\"]}", json);
 
         final CategoryAndMetrics kindsFromJson = mapper.readValue(json, CategoryAndMetrics.class);
         Assert.assertEquals(kindsFromJson, kinds);

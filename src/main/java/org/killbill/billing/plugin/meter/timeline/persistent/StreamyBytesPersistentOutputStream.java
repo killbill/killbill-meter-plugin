@@ -17,6 +17,7 @@
 
 package org.killbill.billing.plugin.meter.timeline.persistent;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.dataformat.smile.SmileConstants;
 import com.fasterxml.util.membuf.StreamyBytesMemBuffer;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.io.Files;
 
 public class StreamyBytesPersistentOutputStream extends OutputStream {
 
@@ -120,11 +120,11 @@ public class StreamyBytesPersistentOutputStream extends OutputStream {
 
     private void flushToFile(final File out) throws IOException {
         final byte[] buf = new byte[BUF_SIZE];
-        FileOutputStream transfer = null;
+        BufferedOutputStream transfer = null;
 
         int bytesTransferred = 0;
         try {
-            transfer = Files.newOutputStreamSupplier(out).getOutput();
+            transfer = new BufferedOutputStream(new FileOutputStream(out), BUF_SIZE);
 
             while (true) {
                 final int r = inputBuffer.readIfAvailable(buf);
@@ -142,6 +142,7 @@ public class StreamyBytesPersistentOutputStream extends OutputStream {
                     bytesOnDisk += bytesTransferred;
                 } finally {
                     transfer.flush();
+                    transfer.close();
                 }
             }
         }

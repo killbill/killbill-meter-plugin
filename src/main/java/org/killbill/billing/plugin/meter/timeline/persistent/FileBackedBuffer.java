@@ -111,7 +111,7 @@ public class FileBackedBuffer {
             }
 
             out = new StreamyBytesPersistentOutputStream(basePath, prefix, inputBuffer, deleteFilesOnClose);
-            smileGenerator = smileFactory.createJsonGenerator(out, JsonEncoding.UTF8);
+            smileGenerator = smileFactory.createGenerator(out, JsonEncoding.UTF8);
             // Drop the Smile header
             smileGenerator.flush();
             out.reset();
