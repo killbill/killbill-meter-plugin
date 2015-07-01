@@ -19,6 +19,7 @@ package org.killbill.billing.plugin.meter;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.sql.SQLException;
 
 import org.killbill.billing.plugin.TestUtils;
@@ -34,6 +35,9 @@ import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.ByteStreams;
+
 public class MeterTestSuiteWithEmbeddedDB extends MeterTestSuite {
 
 	private static final String DDL_FILE_NAME = "ddl.sql";
@@ -43,8 +47,7 @@ public class MeterTestSuiteWithEmbeddedDB extends MeterTestSuite {
 	protected static EmbeddedDB helper;
 
 	static {
-		if ("true".equals(System
-				.getProperty("org.killbill.billing.dbi.test.h2"))) {
+		if ("true".equals(System.getProperty("org.killbill.billing.dbi.test.h2"))) {
 			log.info("Using h2 as the embedded database");
 			helper = new H2EmbeddedDB();
 		} else {
@@ -55,13 +58,16 @@ public class MeterTestSuiteWithEmbeddedDB extends MeterTestSuite {
 
 	public static IDBI getDBI() {
 		try {
-			final MeterModule meterModule = new MeterModule(
-					helper.getDataSource());
+			final MeterModule meterModule = new MeterModule(helper.getDataSource());
 			return meterModule.getDBI();
 		} catch (IOException e) {
 			Assert.fail(e.toString());
 			return null;
 		}
+	}
+
+	public static String urlToString(final URL url) throws IOException {
+		return new String(ByteStreams.toByteArray(url.openStream()), Charsets.UTF_8);
 	}
 
 	@BeforeSuite(groups = { "slow", "mysql" })
@@ -70,7 +76,8 @@ public class MeterTestSuiteWithEmbeddedDB extends MeterTestSuite {
 		helper.start();
 
 		final String ddl = TestUtils.toString(DDL_FILE_NAME);
-		helper.executeScript(ddl);
+		helper.executeScript( ddl );
+		log.info("Executed DDL script. \n" + ddl);
 		helper.refreshTableNames();
 	}
 
