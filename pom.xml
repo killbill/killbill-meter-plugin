@@ -227,6 +227,14 @@
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
 				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Bundle-Activator>org.killbill.billing.plugin.meter.osgi.MeterActivator</Bundle-Activator>
+						<Export-Package />
+						<!--Import-Package>*;resolution:=optional,org.killbill.billing.osgi.api</Import-Package-->
+						<Import-Package>*;resolution:=optional</Import-Package>
+					</instructions>
+				</configuration>
 				<executions>
 					<execution>
 						<phase>process-classes</phase>
@@ -235,12 +243,6 @@
 						</goals>
 					</execution>
 				</executions>
-				<configuration>
-					<instructions>
-						<Bundle-Activator>org.killbill.billing.plugin.meter.osgi.MeterActivator</Bundle-Activator>
-						<Import-Package>*;resolution:=optional,org.killbill.billing.osgi.api</Import-Package>
-					</instructions>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
