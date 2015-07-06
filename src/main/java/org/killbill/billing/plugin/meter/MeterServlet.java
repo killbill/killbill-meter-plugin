@@ -141,10 +141,6 @@ public class MeterServlet extends PluginServlet {
 	// REQUEST: curl -vk -X POST "plugins/killbill-meter/sourceName/categoryName/metricName?withCategoryAggregate=true"
 	@Override
 	protected void doPost(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-		logService.log(LogService.LOG_INFO, "reg.contextPath = " + req.getContextPath() );
-		logService.log(LogService.LOG_INFO, "reg.pathInfo    = " + req.getPathInfo() );
-		logService.log(LogService.LOG_INFO, "reg.servletPath = " + req.getServletPath() );
-		
 		String[] pathData = extractPathData( req.getPathInfo() );
 		if (pathData != null && pathData.length == 3) {
 			final String source = pathData[0];
@@ -152,10 +148,6 @@ public class MeterServlet extends PluginServlet {
 			final String metricName = pathData[2];
 
 			Boolean withAggregate = Boolean.FALSE;
-//			Map<String, String[]> paramMap = req.getParameterMap();
-//			if (paramMap.get( QUERY_METER_WITH_CATEGORY_AGGREGATE ) != null) {
-//				withAggregate = Boolean.valueOf( paramMap.get( QUERY_METER_WITH_CATEGORY_AGGREGATE )[0] );
-//			}
 			String withAggregateStr = req.getParameter( QUERY_METER_WITH_CATEGORY_AGGREGATE );
 			if (withAggregateStr != null) {
 				withAggregate = Boolean.valueOf( withAggregateStr );
@@ -183,28 +175,6 @@ public class MeterServlet extends PluginServlet {
 			}
 		}
 	}
-/*
-		final String formUrlEncoded = getRequestData(req);
-		final String[] keyValuePairs = formUrlEncoded.split("\\&");
-		final Map<String, String> parameters = new HashMap<String, String>();
-		for (final String keyValuePair : keyValuePairs) {
-			if (keyValuePair != null && !keyValuePair.isEmpty()) {
-				final String[] keyValue = keyValuePair.split("=");
-				if (keyValue.length != 2) {
-					throw new RuntimeException("Invalid parameters :" + formUrlEncoded);
-				}
-				parameters.put(keyValue[0], keyValue[1]);
-			}
-		}
-
-		final StringBuffer tmp = new StringBuffer("TermUrl parameters:\n\n");
-		for (final String key : parameters.keySet()) {
-			tmp.append(key).append(": ").append(parameters.get(key)).append("\n\n");
-		}
-
-		logger.info(tmp.toString());
-	}
-*/
 
 	private String[] extractPathData(String pathInfo) {
 		String[] result = null;
