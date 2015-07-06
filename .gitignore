@@ -12,9 +12,7 @@ pom.xml.releaseBackup
 release.properties
 logs/
 .diskspool
-*.classpath
 *.settings
-*.project
 */bin/
 catalog/src/test/resources/CatalogSchema.xsd
 */test-output/

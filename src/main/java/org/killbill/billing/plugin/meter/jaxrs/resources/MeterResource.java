@@ -85,8 +85,7 @@ public class MeterResource {
     private final Clock clock;
 
     @Inject
-    public MeterResource(final MeterUserApi meterApi,
-                         final Clock clock) {
+    public MeterResource(final MeterUserApi meterApi, final Clock clock) {
         this.meterApi = meterApi;
         this.clock = clock;
     }
@@ -102,44 +101,45 @@ public class MeterResource {
                                     @QueryParam(QUERY_METER_FROM) final String fromTimestampString,
                                     @QueryParam(QUERY_METER_TO) final String toTimestampString,
                                     @QueryParam(QUERY_METER_TIME_AGGREGATION_MODE) @DefaultValue("") final String timeAggregationModeString,
-                                    @javax.ws.rs.core.Context final HttpServletRequest request) {
-        final TenantContext tenantContext = createContext(request);
+                                    @javax.ws.rs.core.Context final HttpServletRequest request)
+    {
+		final TenantContext tenantContext = createContext(request);
 
-        final DateTime fromTimestamp;
-        if (fromTimestampString != null) {
-            fromTimestamp = DATE_TIME_FORMATTER.parseDateTime(fromTimestampString);
-        } else {
-            fromTimestamp = clock.getUTCNow().minusMonths(3);
-        }
-        final DateTime toTimestamp;
-        if (toTimestampString != null) {
-            toTimestamp = DATE_TIME_FORMATTER.parseDateTime(toTimestampString);
-        } else {
-            toTimestamp = clock.getUTCNow();
-        }
+		final DateTime fromTimestamp;
+		if (fromTimestampString != null) {
+			fromTimestamp = DATE_TIME_FORMATTER.parseDateTime(fromTimestampString);
+		} else {
+			fromTimestamp = clock.getUTCNow().minusMonths(3);
+		}
+		final DateTime toTimestamp;
+		if (toTimestampString != null) {
+			toTimestamp = DATE_TIME_FORMATTER.parseDateTime(toTimestampString);
+		} else {
+			toTimestamp = clock.getUTCNow();
+		}
 
-        return new StreamingOutput() {
-            @Override
-            public void write(final OutputStream output) throws IOException, WebApplicationException {
-                // Look at aggregates per category?
-                if (categories != null && categories.size() > 0) {
-                    if (Strings.isNullOrEmpty(timeAggregationModeString)) {
-                        meterApi.getUsage(output, source, categories, fromTimestamp, toTimestamp, tenantContext);
-                    } else {
-                        final TimeAggregationMode timeAggregationMode = TimeAggregationMode.valueOf(timeAggregationModeString);
-                        meterApi.getUsage(output, timeAggregationMode, source, categories, fromTimestamp, toTimestamp, tenantContext);
-                    }
-                } else {
-                    final Map<String, Collection<String>> metricsPerCategory = retrieveMetricsPerCategory(categoriesAndMetrics);
-                    if (Strings.isNullOrEmpty(timeAggregationModeString)) {
-                        meterApi.getUsage(output, source, metricsPerCategory, fromTimestamp, toTimestamp, tenantContext);
-                    } else {
-                        final TimeAggregationMode timeAggregationMode = TimeAggregationMode.valueOf(timeAggregationModeString);
-                        meterApi.getUsage(output, timeAggregationMode, source, metricsPerCategory, fromTimestamp, toTimestamp, tenantContext);
-                    }
-                }
-            }
-        };
+		return new StreamingOutput() {
+			@Override
+			public void write(final OutputStream output) throws IOException, WebApplicationException {
+				// Look at aggregates per category?
+				if (categories != null && categories.size() > 0) {
+					if (Strings.isNullOrEmpty(timeAggregationModeString)) {
+						meterApi.getUsage(output, source, categories, fromTimestamp, toTimestamp, tenantContext);
+					} else {
+						final TimeAggregationMode timeAggregationMode = TimeAggregationMode.valueOf(timeAggregationModeString);
+						meterApi.getUsage(output, timeAggregationMode, source, categories, fromTimestamp, toTimestamp, tenantContext);
+					}
+				} else {
+					final Map<String, Collection<String>> metricsPerCategory = retrieveMetricsPerCategory(categoriesAndMetrics);
+					if (Strings.isNullOrEmpty(timeAggregationModeString)) {
+						meterApi.getUsage(output, source, metricsPerCategory, fromTimestamp, toTimestamp, tenantContext);
+					} else {
+						final TimeAggregationMode timeAggregationMode = TimeAggregationMode.valueOf(timeAggregationModeString);
+						meterApi.getUsage(output, timeAggregationMode, source, metricsPerCategory, fromTimestamp, toTimestamp, tenantContext);
+					}
+				}
+			}
+		};
     }
 
     private Map<String, Collection<String>> retrieveMetricsPerCategory(final List<String> categoriesAndMetrics) {

@@ -1,6 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014 The Billing Project, LLC
+ * Copyright 2015 Trifon Trifonov
  *
  * Ning licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -17,11 +18,22 @@
 
 package org.killbill.billing.plugin.meter.osgi;
 
+import java.util.Hashtable;
+
+import javax.servlet.Servlet;
+import javax.servlet.http.HttpServlet;
+
+import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.plugin.meter.MeterService;
+import org.killbill.billing.plugin.meter.MeterServlet;
+import org.killbill.billing.plugin.meter.api.user.MeterUserApi;
 import org.killbill.billing.plugin.meter.glue.MeterModule;
+import org.killbill.clock.Clock;
+import org.killbill.clock.DefaultClock;
 import org.killbill.killbill.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.log.LogService;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -29,28 +41,48 @@ import com.google.inject.Stage;
 
 public class MeterActivator extends KillbillActivatorBase {
 
-    private MeterService meterService = null;
+	public static final String PLUGIN_NAME = "killbill-meter";
 
-    @Override
-    public void start(final BundleContext context) throws Exception {
-        super.start(context);
+	private MeterService meterService = null;
 
-        final Injector injector = Guice.createInjector(Stage.PRODUCTION, new MeterModule(dataSource.getDataSource()));
-        meterService = (MeterService) injector.getInstance(MeterService.class);
-        meterService.start();
-    }
+	@Override
+	public void start(final BundleContext context) throws Exception {
+		super.start(context);
 
-    @Override
-    public void stop(final BundleContext context) throws Exception {
-        super.stop(context);
+		logService.log(LogService.LOG_INFO, "Starting " + PLUGIN_NAME);
 
-        if (meterService != null) {
-            meterService.stop();
-        }
-    }
+		final Injector injector = Guice.createInjector(Stage.PRODUCTION, new MeterModule(dataSource.getDataSource()));
+		meterService = (MeterService) injector.getInstance(MeterService.class);
+		meterService.start();
 
-    @Override
-    public OSGIKillbillEventHandler getOSGIKillbillEventHandler() {
-        return null;
+		final Clock clock = new DefaultClock();
+
+		MeterUserApi meterUserApi = null;
+		meterUserApi = (MeterUserApi) injector.getInstance(MeterUserApi.class);
+		
+		// Register plug-in servlet
+		// http://localhost:8080/plugins/killbill-meter
+		final MeterServlet meterServlet = new MeterServlet(logService, meterUserApi, clock);
+		registerServlet(context, meterServlet);
+	}
+
+	@Override
+	public void stop(final BundleContext context) throws Exception {
+		super.stop(context);
+
+		if (meterService != null) {
+			meterService.stop();
+		}
+	}
+
+	@Override
+	public OSGIKillbillEventHandler getOSGIKillbillEventHandler() {
+		return null;
+	}
+
+    private void registerServlet(final BundleContext context, final HttpServlet servlet) {
+        final Hashtable<String, String> props = new Hashtable<String, String>();
+        props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
+        registrar.registerService(context, Servlet.class, servlet, props);
     }
 }
